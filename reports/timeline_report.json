@@ -1,0 +1,40 @@
+{
+    "generated_at": "2026-08-07T19:16:59.102700+00:00",
+    "ioc": "45.33.32.156",
+    "timeline_events": 4,
+    "assessment": "Brute-force attack followed by successful authentication",
+    "timeline": [
+        {
+            "timestamp": "2026-08-07 10:01:15",
+            "action": "FAILED_LOGIN",
+            "user": "admin",
+            "source_ip": "192.168.1.5",
+            "destination": "45.33.32.156",
+            "file": "ssh.log"
+        },
+        {
+            "timestamp": "2026-08-07 10:02:40",
+            "action": "FAILED_LOGIN",
+            "user": "admin",
+            "source_ip": "192.168.1.5",
+            "destination": "45.33.32.156",
+            "file": "ssh.log"
+        },
+        {
+            "timestamp": "2026-08-07 10:03:12",
+            "action": "FAILED_LOGIN",
+            "user": "admin",
+            "source_ip": "192.168.1.5",
+            "destination": "45.33.32.156",
+            "file": "ssh.log"
+        },
+        {
+            "timestamp": "2026-08-07 10:05:55",
+            "action": "SUCCESSFUL_LOGIN",
+            "user": "admin",
+            "source_ip": "192.168.1.5",
+            "destination": "45.33.32.156",
+            "file": "ssh.log"
+        }
+    ]
+}

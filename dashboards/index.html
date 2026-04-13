@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CyberNova Threat Hunting Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .cards {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            width: 180px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #555;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #333;
+        }
+    </style>
+</head>
+<body>
+
+<h1>CyberNova Threat Hunting Dashboard</h1>
+
+<div class="cards">
+    <div class="card">
+        <h2>Total Findings</h2>
+        <h1>4</h1>
+    </div>
+
+    <div class="card">
+        <h2>Critical</h2>
+        <h1>1</h1>
+    </div>
+
+    <div class="card">
+        <h2>High</h2>
+        <h1>1</h1>
+    </div>
+
+    <div class="card">
+        <h2>Medium</h2>
+        <h1>1</h1>
+    </div>
+
+    <div class="card">
+        <h2>Low</h2>
+        <h1>1</h1>
+    </div>
+</div>
+
+<h2>Threat Hunting Findings</h2>
+
+<table>
+    <tr>
+        <th>Severity</th>
+        <th>Type</th>
+        <th>User</th>
+        <th>Destination</th>
+        <th>File</th>
+    </tr>
+
+    
+        <tr>
+            <td>CRITICAL</td>
+            <td>Authentication Anomaly</td>
+            <td>admin</td>
+            <td>45.33.32.156</td>
+            <td>ssh.log</td>
+        </tr>
+        
+        <tr>
+            <td>HIGH</td>
+            <td>PowerShell Execution</td>
+            <td>root</td>
+            <td>203.0.113.50</td>
+            <td>script.ps1</td>
+        </tr>
+        
+        <tr>
+            <td>MEDIUM</td>
+            <td>Suspicious DNS Query</td>
+            <td>admin</td>
+            <td>malicious-domain.com</td>
+            <td>dns.log</td>
+        </tr>
+        
+        <tr>
+            <td>LOW</td>
+            <td>File Download</td>
+            <td>system</td>
+            <td>198.51.100.23</td>
+            <td>update.bin</td>
+        </tr>
+        
+
+</table>
+
+</body>
+</html>

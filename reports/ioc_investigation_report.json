@@ -1,0 +1,25 @@
+{
+    "generated_at": "2026-08-07T19:14:42.286979+00:00",
+    "ioc": "45.33.32.156",
+    "ioc_type": "IP Address",
+    "matches": 4,
+    "severity": "CRITICAL",
+    "findings": [
+        {
+            "line": 1,
+            "content": "2026-08-07 10:01:15 SRC=192.168.1.5 DST=45.33.32.156 USER=admin ACTION=FAILED_LOGIN FILE=ssh.log"
+        },
+        {
+            "line": 2,
+            "content": "2026-08-07 10:02:40 SRC=192.168.1.5 DST=45.33.32.156 USER=admin ACTION=FAILED_LOGIN FILE=ssh.log"
+        },
+        {
+            "line": 3,
+            "content": "2026-08-07 10:03:12 SRC=192.168.1.5 DST=45.33.32.156 USER=admin ACTION=FAILED_LOGIN FILE=ssh.log"
+        },
+        {
+            "line": 4,
+            "content": "2026-08-07 10:05:55 SRC=192.168.1.5 DST=45.33.32.156 USER=admin ACTION=SUCCESSFUL_LOGIN FILE=ssh.log"
+        }
+    ]
+}

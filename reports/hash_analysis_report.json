@@ -1,0 +1,14 @@
+{
+    "generated_at": "2026-04-13T20:01:27.482798+00:00",
+    "file": "samples/update.bin",
+    "hashes": {
+        "md5": "09acdc7428a29140f42c7d5db7e92090",
+        "sha1": "51dc8fb0a27c4767cc45f7a2f823d32f607cd28b",
+        "sha256": "d2a8304078ae990d9587f355bdb483b9eaa5ab2d8abec039fbba085627ce1bae"
+    },
+    "threat_intelligence": {
+        "matched": false,
+        "threat_name": null,
+        "risk": "LOW"
+    }
+}
