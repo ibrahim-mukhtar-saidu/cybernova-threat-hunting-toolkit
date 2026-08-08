@@ -1,25 +1,13 @@
 {
-    "generated_at": "2026-08-07T19:14:42.286979+00:00",
-    "ioc": "45.33.32.156",
-    "ioc_type": "IP Address",
-    "matches": 4,
-    "severity": "CRITICAL",
+    "generated_at": "2026-08-08T12:41:45.421186+00:00",
+    "ioc": "d2a8304078ae990d9587f355bdb483b9eaa5ab2d8abec039fbba085627ce1bae",
+    "ioc_type": "Hash",
+    "matches": 1,
+    "severity": "LOW",
     "findings": [
         {
-            "line": 1,
-            "content": "2026-08-07 10:01:15 SRC=192.168.1.5 DST=45.33.32.156 USER=admin ACTION=FAILED_LOGIN FILE=ssh.log"
-        },
-        {
-            "line": 2,
-            "content": "2026-08-07 10:02:40 SRC=192.168.1.5 DST=45.33.32.156 USER=admin ACTION=FAILED_LOGIN FILE=ssh.log"
-        },
-        {
-            "line": 3,
-            "content": "2026-08-07 10:03:12 SRC=192.168.1.5 DST=45.33.32.156 USER=admin ACTION=FAILED_LOGIN FILE=ssh.log"
-        },
-        {
-            "line": 4,
-            "content": "2026-08-07 10:05:55 SRC=192.168.1.5 DST=45.33.32.156 USER=admin ACTION=SUCCESSFUL_LOGIN FILE=ssh.log"
+            "line": 6,
+            "content": "2026-08-07 10:07:44 SRC=192.168.1.5 DST=198.51.100.23 USER=system ACTION=FILE_DOWNLOAD FILE=update.bin SHA256=d2a8304078ae990d9587f355bdb483b9eaa5ab2d8abec039fbba085627ce1bae"
         }
     ]
 }
