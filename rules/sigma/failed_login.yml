@@ -1,0 +1,18 @@
+title: Multiple Failed Login Attempts
+id: cybernova-failed-login-001
+status: experimental
+description: Detects failed authentication attempts in threat hunting logs.
+
+logsource:
+  category: authentication
+
+detection:
+  selection:
+    ACTION: FAILED_LOGIN
+  condition: selection
+
+level: medium
+
+tags:
+  - attack.credential_access
+  - attack.t1110

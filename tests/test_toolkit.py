@@ -136,3 +136,77 @@ def test_classify_valid_ipv4_addresses():
 def test_classify_invalid_ipv4_addresses():
     assert classify_ioc("999.999.999.999") == "File / Indicator"
     assert classify_ioc("45x33x32x156") == "File / Indicator"
+
+
+def test_load_sigma_rule():
+    from hunters.sigma_detector import load_sigma_rule
+
+    rule = load_sigma_rule("rules/sigma/failed_login.yml")
+
+    assert rule["title"] == "Multiple Failed Login Attempts"
+    assert rule["detection"]["selection"]["ACTION"] == "FAILED_LOGIN"
+    assert rule["level"] == "medium"
+
+
+def test_parse_log_fields():
+    from hunters.sigma_detector import parse_log_fields
+
+    line = (
+        "2026-08-07 10:01:15 "
+        "SRC=192.168.1.5 DST=45.33.32.156 "
+        "USER=admin ACTION=FAILED_LOGIN FILE=ssh.log"
+    )
+
+    fields = parse_log_fields(line)
+
+    assert fields["SRC"] == "192.168.1.5"
+    assert fields["DST"] == "45.33.32.156"
+    assert fields["USER"] == "admin"
+    assert fields["ACTION"] == "FAILED_LOGIN"
+    assert fields["FILE"] == "ssh.log"
+
+
+def test_sigma_event_matching():
+    from hunters.sigma_detector import event_matches_selection
+
+    event = {
+        "USER": "admin",
+        "ACTION": "FAILED_LOGIN",
+    }
+
+    selection = {
+        "ACTION": "FAILED_LOGIN",
+    }
+
+    assert event_matches_selection(event, selection) is True
+
+
+def test_sigma_event_not_matching():
+    from hunters.sigma_detector import event_matches_selection
+
+    event = {
+        "USER": "admin",
+        "ACTION": "SUCCESSFUL_LOGIN",
+    }
+
+    selection = {
+        "ACTION": "FAILED_LOGIN",
+    }
+
+    assert event_matches_selection(event, selection) is False
+
+
+def test_sigma_detection():
+    from hunters.sigma_detector import detect_with_sigma
+
+    matches = detect_with_sigma(
+        "samples/threat_hunting.log",
+        "rules/sigma/failed_login.yml",
+    )
+
+    assert len(matches) == 3
+    assert matches[0]["line"] == 1
+    assert matches[1]["line"] == 2
+    assert matches[2]["line"] == 3
+    assert matches[0]["rule"] == "Multiple Failed Login Attempts"
+    assert matches[0]["level"] == "medium"
