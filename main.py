@@ -3,14 +3,28 @@
 import argparse
 import sys
 
-from hunters.ioc_search import classify_ioc, determine_severity, search_ioc, generate_report
+from hunters.ioc_search import (
+    classify_ioc,
+    determine_severity,
+    search_ioc,
+    generate_report,
+)
 from hunters.hash_analyzer import (
     calculate_hashes,
     threat_intelligence_lookup,
     generate_report as generate_hash_report,
 )
-from hunters.log_hunter import hunt_logs, generate_report as generate_log_report
-from hunters.timeline_builder import build_timeline, assess_timeline, generate_timeline_report
+from hunters.log_hunter import (
+    hunt_logs,
+    generate_report as generate_log_report,
+)
+from hunters.timeline_builder import (
+    build_timeline,
+    assess_timeline,
+    generate_timeline_report,
+)
+from hunters.sigma_detector import detect_with_sigma
+from hunters.yara_detector import scan_file
 
 
 def cmd_ioc(value):
@@ -37,7 +51,6 @@ def cmd_ioc(value):
 
     for result in results:
         print(f"Line {result['line']}: {result['content']}")
-
 
     report_path = generate_report(value, results)
     print(f"\nReport saved: {report_path}")
@@ -101,13 +114,64 @@ def cmd_timeline(filepath, ioc):
     print(f"IOC: {ioc}")
 
     print("\nTimeline:")
-    for event in timeline:
-        print(event)
+
+    if not timeline:
+        print("No timeline events found.")
+    else:
+        for event in timeline:
+            print(event)
 
     print("\nAssessment:")
     print(assessment)
+
     report_path = generate_timeline_report(ioc, timeline)
     print(f"Report saved: {report_path}")
+
+
+def cmd_sigma(logfile, rule):
+    matches = detect_with_sigma(logfile, rule)
+
+    print("\n=== CYBERNOVA SIGMA DETECTION ===")
+    print(f"Log:     {logfile}")
+    print(f"Rule:    {rule}")
+    print(f"Matches: {len(matches)}")
+
+    if not matches:
+        print("\nNo Sigma rule matches detected.")
+        return
+
+    print("\nDetection Results:")
+
+    for match in matches:
+        print(
+            f"[{match['level'].upper()}] "
+            f"{match['rule']} | "
+            f"Line {match['line']}"
+        )
+        print(f"  {match['content']}")
+
+
+def cmd_yara(sample, rule):
+    matches = scan_file(sample, rule)
+
+    print("\n=== CYBERNOVA YARA ANALYSIS ===")
+    print(f"Sample:  {sample}")
+    print(f"Rule:    {rule}")
+    print(f"Matches: {len(matches)}")
+
+    if not matches:
+        print("\nNo YARA matches detected.")
+        return
+
+    print("\nDetection Results:")
+
+    for match in matches:
+        meta = match["meta"]
+
+        print(f"Rule:        {match['rule']}")
+        print(f"Namespace:   {match['namespace']}")
+        print(f"Severity:    {meta.get('severity', 'unknown')}")
+        print(f"Description: {meta.get('description', 'N/A')}")
 
 
 def main():
@@ -123,7 +187,7 @@ def main():
 
     ioc_parser = subparsers.add_parser(
         "ioc",
-        help="Classify an indicator of compromise",
+        help="Classify and investigate an indicator of compromise",
     )
     ioc_parser.add_argument(
         "value",
@@ -161,6 +225,32 @@ def main():
         help="IOC to investigate",
     )
 
+    sigma_parser = subparsers.add_parser(
+        "sigma",
+        help="Detect log events using a Sigma rule",
+    )
+    sigma_parser.add_argument(
+        "file",
+        help="Path to the log file",
+    )
+    sigma_parser.add_argument(
+        "rule",
+        help="Path to the Sigma rule",
+    )
+
+    yara_parser = subparsers.add_parser(
+        "yara",
+        help="Scan a file using a YARA rule",
+    )
+    yara_parser.add_argument(
+        "sample",
+        help="Path to the sample file",
+    )
+    yara_parser.add_argument(
+        "rule",
+        help="Path to the YARA rule",
+    )
+
     args = parser.parse_args()
 
     try:
@@ -175,6 +265,12 @@ def main():
 
         elif args.command == "timeline":
             cmd_timeline(args.file, args.ioc)
+
+        elif args.command == "sigma":
+            cmd_sigma(args.file, args.rule)
+
+        elif args.command == "yara":
+            cmd_yara(args.sample, args.rule)
 
     except FileNotFoundError as exc:
         print(f"Error: file not found: {exc}", file=sys.stderr)
