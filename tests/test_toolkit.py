@@ -210,3 +210,41 @@ def test_sigma_detection():
     assert matches[2]["line"] == 3
     assert matches[0]["rule"] == "Multiple Failed Login Attempts"
     assert matches[0]["level"] == "medium"
+
+
+def test_compile_yara_rule():
+    from hunters.yara_detector import compile_yara_rule
+
+    rules = compile_yara_rule(
+        "rules/yara/suspicious_sample.yar"
+    )
+
+    assert rules is not None
+
+
+def test_yara_scan_detects_sample():
+    from hunters.yara_detector import scan_file
+
+    matches = scan_file(
+        "samples/update.bin",
+        "rules/yara/suspicious_sample.yar",
+    )
+
+    assert len(matches) == 1
+    assert matches[0]["rule"] == "CyberNova_Suspicious_Sample"
+    assert matches[0]["namespace"] == "default"
+    assert matches[0]["meta"]["severity"] == "medium"
+
+
+def test_yara_scan_missing_sample():
+    from hunters.yara_detector import scan_file
+
+    try:
+        scan_file(
+            "samples/does_not_exist.bin",
+            "rules/yara/suspicious_sample.yar",
+        )
+    except FileNotFoundError as error:
+        assert "Sample file not found" in str(error)
+    else:
+        raise AssertionError("Expected FileNotFoundError")
