@@ -65,9 +65,7 @@ def generate_dashboard():
     medium = summary.get("medium", 0)
     low = summary.get("low", 0)
 
-    generated_at = html.escape(
-        str(report.get("generated_at", "Unknown"))
-    )
+    generated_at = "CYBERNOVA AI Demo Dataset"
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
