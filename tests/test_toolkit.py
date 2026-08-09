@@ -1,8 +1,9 @@
 import hashlib
+import json
 import tempfile
 from pathlib import Path
 
-from hunters.ioc_search import classify_ioc, determine_severity
+from hunters.ioc_search import classify_ioc, determine_severity, search_ioc, generate_report
 from hunters.hash_analyzer import calculate_hashes
 from hunters.timeline_builder import assess_timeline
 
@@ -67,3 +68,71 @@ def test_powershell_timeline_assessment():
     result = assess_timeline(timeline)
 
     assert result == "Suspicious PowerShell activity observed"
+
+def test_ioc_search_finds_matching_events():
+    results = search_ioc(
+        "samples/threat_hunting.log",
+        "45.33.32.156",
+    )
+
+    assert len(results) == 4
+    assert results[0]["line"] == 1
+    assert "FAILED_LOGIN" in results[0]["content"]
+    assert results[-1]["line"] == 4
+    assert "SUCCESSFUL_LOGIN" in results[-1]["content"]
+
+
+def test_ioc_search_returns_no_matches():
+    results = search_ioc(
+        "samples/threat_hunting.log",
+        "198.18.0.250",
+    )
+
+    assert results == []
+
+
+def test_ioc_report_generation(tmp_path, monkeypatch):
+    results = [
+        {
+            "line": 1,
+            "content": (
+                "2026-08-07 10:01:15 "
+                "SRC=192.168.1.5 DST=45.33.32.156 "
+                "USER=admin ACTION=FAILED_LOGIN FILE=ssh.log"
+            ),
+        }
+    ]
+
+    report_dir = tmp_path / "generated"
+    monkeypatch.setattr(
+        "hunters.ioc_search.REPORT_DIR",
+        str(report_dir),
+    )
+
+    report_path = generate_report(
+        "45.33.32.156",
+        results,
+    )
+
+    assert report_path.exists()
+    assert report_path.name == "ioc_investigation_report.json"
+
+
+    with report_path.open("r", encoding="utf-8") as f:
+        report = json.load(f)
+
+    assert report["ioc"] == "45.33.32.156"
+    assert report["ioc_type"] == "IP Address"
+    assert report["matches"] == 1
+    assert report["severity"] == "LOW"
+    assert len(report["findings"]) == 1
+
+def test_classify_valid_ipv4_addresses():
+    assert classify_ioc("8.8.8.8") == "IP Address"
+    assert classify_ioc("192.168.1.1") == "IP Address"
+    assert classify_ioc("255.255.255.255") == "IP Address"
+
+
+def test_classify_invalid_ipv4_addresses():
+    assert classify_ioc("999.999.999.999") == "Domain"
+    assert classify_ioc("45x33x32x156") == "File / Indicator"

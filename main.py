@@ -3,7 +3,7 @@
 import argparse
 import sys
 
-from hunters.ioc_search import classify_ioc, determine_severity, search_ioc
+from hunters.ioc_search import classify_ioc, determine_severity, search_ioc, generate_report
 from hunters.hash_analyzer import (
     calculate_hashes,
     threat_intelligence_lookup,
@@ -15,14 +15,32 @@ from hunters.timeline_builder import build_timeline, assess_timeline, generate_t
 
 def cmd_ioc(value):
     ioc_type = classify_ioc(value)
+    log_file = "samples/threat_hunting.log"
+
+    results = search_ioc(log_file, value)
+    severity = determine_severity(len(results))
 
     print("\n=== CYBERNOVA IOC ANALYSIS ===")
     print(f"IOC:      {value}")
     print(f"Type:     {ioc_type}")
+    print(f"Matches:  {len(results)}")
+    print(f"Severity: {severity}")
 
-    # Classification alone does not indicate threat severity.
-    # Severity is based on the number of matches returned by a log search.
-    print("Status:   IOC classified successfully")
+    if not results:
+        print("\nNo matches found in the threat hunting log.")
+
+        report_path = generate_report(value, results)
+        print(f"Report saved: {report_path}")
+        return
+
+    print("\nMatching Events:")
+
+    for result in results:
+        print(f"Line {result['line']}: {result['content']}")
+
+
+    report_path = generate_report(value, results)
+    print(f"\nReport saved: {report_path}")
 
 
 def cmd_hash(filepath):

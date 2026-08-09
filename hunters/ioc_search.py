@@ -9,17 +9,23 @@ LOG_FILE = "samples/threat_hunting.log"
 
 
 def classify_ioc(ioc: str) -> str:
-    if re.fullmatch(r"(?:\d{1,3}\.){3}\d{1,3}", ioc):
+    parts = ioc.split(".")
+
+    if len(parts) == 4 and all(
+        part.isdigit() and 0 <= int(part) <= 255
+        for part in parts
+    ):
         return "IP Address"
 
     if "." in ioc and not ioc.endswith(".log") and not ioc.endswith(".ps1"):
         return "Domain"
 
-    if len(ioc) >= 32 and all(c in "0123456789abcdefABCDEF" for c in ioc):
+    if len(ioc) in (32, 40, 64) and all(
+        c in "0123456789abcdefABCDEF" for c in ioc
+    ):
         return "Hash"
 
     return "File / Indicator"
-
 
 def determine_severity(matches: int) -> str:
     if matches >= 4:
