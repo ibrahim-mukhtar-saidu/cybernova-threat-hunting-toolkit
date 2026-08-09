@@ -1,116 +1,553 @@
-# CYBERNOVA Threat Hunting Toolkit
+# CYBERNOVA AI Threat Hunting Toolkit
 
-A Python-based **threat hunting, IOC investigation, log analysis, timeline reconstruction, and security reporting toolkit** designed to demonstrate practical **Blue Team and SOC analyst workflows**.
+> **A Python-based defensive security toolkit for IOC investigation, threat hunting, log analysis, timeline reconstruction, Sigma detection, YARA scanning, automated reporting, and security visualization.**
 
-> **Project:** CYBERNOVA Threat Hunting Toolkit
-> **Focus:** Blue Team • SOC • Threat Hunting • Incident Response
-> **Language:** Python
-> **Platform:** Linux / Windows-compatible Python environment
-> **Status:** Active Development
-
----
-
-## 🔎 Overview
-
-The **CYBERNOVA Threat Hunting Toolkit** is a modular cybersecurity project designed to simulate practical activities performed by security analysts during threat investigations.
-
-The toolkit demonstrates how security data can be:
-
-**Collected → Analyzed → Investigated → Correlated → Reported → Visualized**
-
-The project focuses on defensive security and authorized analysis of controlled security data.
+![Python](https://img.shields.io/badge/Python-3.13-blue)
+![Tests](https://img.shields.io/badge/tests-20%20passed-brightgreen)
+![Security](https://img.shields.io/badge/focus-Blue%20Team%20%7C%20Threat%20Hunting-red)
+![Status](https://img.shields.io/badge/status-Active%20Development-orange)
 
 ---
 
-## 🛡️ Core Capabilities
+## 📌 Overview
 
-### Threat Hunting
+**CYBERNOVA AI Threat Hunting Toolkit** is a modular Python cybersecurity project designed to demonstrate practical **Security Operations Center (SOC)**, **blue-team**, and **threat-hunting** workflows.
 
-Analyze security logs and identify suspicious activity that may require further investigation.
+The toolkit provides multiple investigation capabilities through a unified command-line interface:
 
-Capabilities include:
+* IOC classification and investigation
+* Security log hunting
+* File hash analysis
+* Threat-intelligence lookup using controlled test data
+* Investigation timeline reconstruction
+* Sigma rule detection
+* YARA rule scanning
+* Automated JSON reporting
+* HTML security dashboard generation
+* Automated unit/integration testing
 
-* Security log analysis
-* Suspicious event detection
-* Threat indicator identification
-* Pattern-based investigation
-* Evidence-driven analysis
+The project is intentionally built around **safe, controlled sample data** so that security investigation techniques can be demonstrated without requiring access to real-world malicious infrastructure.
 
-### IOC Investigation
+---
 
-Investigate indicators that may be associated with suspicious activity.
+# 🎯 Project Goals
 
-Supported IOC concepts include:
+The primary goals of the project are to demonstrate the ability to:
 
-* IP addresses
+1. Analyze security evidence.
+2. Identify suspicious indicators.
+3. Investigate security events.
+4. Correlate related activity.
+5. Apply detection rules.
+6. Reconstruct investigation timelines.
+7. Generate structured investigation reports.
+8. Present findings through a security dashboard.
+9. Automate repetitive security-analysis tasks with Python.
+10. Build and test security tooling using professional development practices.
+
+---
+
+# 🏗️ Architecture
+
+The toolkit follows a modular investigation architecture.
+
+```text
+                         ┌─────────────────────────┐
+                         │     Security Evidence   │
+                         │                         │
+                         │  Logs / Files / IOCs    │
+                         └────────────┬────────────┘
+                                      │
+                                      ▼
+                    ┌─────────────────────────────────┐
+                    │       Investigation Layer       │
+                    │                                 │
+                    │  IOC Search                     │
+                    │  Hash Analysis                  │
+                    │  Log Hunting                    │
+                    │  Timeline Reconstruction        │
+                    └───────────────┬─────────────────┘
+                                    │
+                                    ▼
+                    ┌─────────────────────────────────┐
+                    │        Detection Layer          │
+                    │                                 │
+                    │  Sigma Rules                    │
+                    │  YARA Rules                     │
+                    └───────────────┬─────────────────┘
+                                    │
+                                    ▼
+                    ┌─────────────────────────────────┐
+                    │       Analysis & Findings       │
+                    │                                 │
+                    │  Severity                       │
+                    │  Evidence                       │
+                    │  Correlation                    │
+                    │  Investigation Context          │
+                    └───────────────┬─────────────────┘
+                                    │
+                                    ▼
+                    ┌─────────────────────────────────┐
+                    │       Reporting Layer           │
+                    │                                 │
+                    │  JSON Reports                   │
+                    │  HTML Dashboard                 │
+                    └───────────────┬─────────────────┘
+                                    │
+                                    ▼
+                    ┌─────────────────────────────────┐
+                    │       Analyst / Reviewer        │
+                    └─────────────────────────────────┘
+```
+
+---
+
+# 🧩 Core Modules
+
+## 1. IOC Investigation
+
+**Module:**
+
+```text
+hunters/ioc_search.py
+```
+
+The IOC investigation module identifies and investigates common indicators of compromise.
+
+Supported indicator categories include:
+
+* IPv4 addresses
 * Domains
 * File hashes
-* Suspicious indicators
-* Indicator correlation
-* Investigation reporting
+* Other suspicious indicators
 
-### Hash Analysis
+The module can:
 
-Analyze file hashes as part of a security investigation.
+* Classify an IOC
+* Search security logs
+* Count matching events
+* Determine investigation severity
+* Display matching events
+* Generate a structured JSON investigation report
 
-This can assist with investigating:
+Example:
 
-* Suspicious files
-* Malware samples
-* Unknown files
-* File integrity
-* Threat indicators
+```bash
+python3 main.py ioc 45.33.32.156
+```
 
-### Timeline Reconstruction
+Example output:
 
-Build chronological timelines from security events.
+```text
+=== CYBERNOVA IOC ANALYSIS ===
+IOC:      45.33.32.156
+Type:     IP Address
+Matches:  4
+Severity: CRITICAL
+```
 
-Timeline analysis can help an analyst understand:
+---
 
-1. What happened first
-2. What happened next
-3. Which events occurred close together
-4. How suspicious activity developed
-5. Which events require additional investigation
+## 2. Hash Analysis
 
-### Automated Security Reporting
+**Module:**
 
-Investigation results are stored in structured JSON reports.
+```text
+hunters/hash_analyzer.py
+```
+
+The hash-analysis module calculates file hashes and performs a controlled threat-intelligence lookup against simulated known indicators.
+
+Supported hashes:
+
+* MD5
+* SHA1
+* SHA256
+
+Example:
+
+```bash
+python3 main.py hash samples/update.bin
+```
+
+The analysis produces:
+
+```text
+MD5
+SHA1
+SHA256
+Threat Intelligence Result
+Risk Level
+```
+
+This demonstrates a common SOC workflow for investigating suspicious files.
+
+---
+
+## 3. Log Hunting
+
+**Module:**
+
+```text
+hunters/log_hunter.py
+```
+
+The log-hunting module parses structured security events and identifies suspicious activity.
+
+The current detection logic includes:
+
+* Repeated failed authentication attempts
+* Successful authentication following multiple failures
+* Suspicious PowerShell execution
+* Suspicious DNS queries
+* File-download activity
+
+Findings are assigned severity levels such as:
+
+```text
+CRITICAL
+HIGH
+MEDIUM
+LOW
+```
+
+Example:
+
+```bash
+python3 main.py log samples/threat_hunting.log
+```
+
+---
+
+## 4. Timeline Reconstruction
+
+**Module:**
+
+```text
+hunters/timeline_builder.py
+```
+
+The timeline module reconstructs the chronological sequence of events associated with an IOC.
+
+It extracts information such as:
+
+* Timestamp
+* Action
+* User
+* Source IP
+* Destination
+* File
+
+The module also performs basic timeline assessment.
+
+For example, it can identify patterns such as:
+
+```text
+Repeated authentication failures
+        ↓
+Successful authentication
+        ↓
+Suspicious activity
+```
+
+Example:
+
+```bash
+python3 main.py timeline samples/threat_hunting.log 45.33.32.156
+```
+
+---
+
+# 🛡️ Detection Engineering
+
+## 5. Sigma Detection
+
+**Module:**
+
+```text
+hunters/sigma_detector.py
+```
+
+**Rules:**
+
+```text
+rules/sigma/
+```
+
+Sigma detection allows the toolkit to apply structured detection rules to security log events.
+
+Example rule:
+
+```text
+rules/sigma/failed_login.yml
+```
+
+Run Sigma detection with:
+
+```bash
+python3 main.py sigma \
+    samples/threat_hunting.log \
+    rules/sigma/failed_login.yml
+```
+
+Example result:
+
+```text
+=== CYBERNOVA SIGMA DETECTION ===
+Log:     samples/threat_hunting.log
+Rule:    rules/sigma/failed_login.yml
+Matches: 3
+
+Detection Results:
+[MEDIUM] Multiple Failed Login Attempts | Line 1
+[MEDIUM] Multiple Failed Login Attempts | Line 2
+[MEDIUM] Multiple Failed Login Attempts | Line 3
+```
+
+This demonstrates how a detection rule can identify repeated suspicious events within security logs.
+
+---
+
+## 6. YARA Detection
+
+**Module:**
+
+```text
+hunters/yara_detector.py
+```
+
+**Rules:**
+
+```text
+rules/yara/
+```
+
+The YARA integration allows the toolkit to scan controlled sample files against YARA detection rules.
+
+Current example rule:
+
+```text
+rules/yara/suspicious_sample.yar
+```
+
+Run YARA analysis:
+
+```bash
+python3 main.py yara \
+    samples/update.bin \
+    rules/yara/suspicious_sample.yar
+```
+
+Example result:
+
+```text
+=== CYBERNOVA YARA ANALYSIS ===
+Sample:  samples/update.bin
+Rule:    rules/yara/suspicious_sample.yar
+Matches: 1
+
+Detection Results:
+Rule:        CyberNova_Suspicious_Sample
+Namespace:   default
+Severity:    medium
+Description: Detects suspicious indicators in a safe analysis sample
+```
+
+The YARA engine is implemented as a reusable Python module rather than being limited to a standalone command.
+
+---
+
+# 🖥️ Command-Line Interface
+
+The main CLI is implemented in:
+
+```text
+main.py
+```
+
+The toolkit provides the following commands:
+
+```text
+cybernova
+├── ioc
+├── hash
+├── log
+├── timeline
+├── sigma
+└── yara
+```
+
+View all commands:
+
+```bash
+python3 main.py --help
+```
+
+Example:
+
+```text
+usage: cybernova [-h] {ioc,hash,log,timeline,sigma,yara} ...
+
+CYBERNOVA AI Threat Hunting Toolkit
+```
+
+---
+
+# 📊 Security Dashboard
+
+The project includes an HTML dashboard for presenting threat-hunting findings.
+
+Dashboard generator:
+
+```text
+dashboards/dashboard_generator.py
+```
+
+Generated dashboard:
+
+```text
+dashboards/index.html
+```
+
+Generate the dashboard:
+
+```bash
+python3 dashboards/dashboard_generator.py
+```
+
+The dashboard presents investigation results including:
+
+* Total findings
+* Critical findings
+* High findings
+* Medium findings
+* Low findings
+* Finding type
+* User
+* Destination
+* File
+* Investigation details
+
+Open the dashboard on Linux:
+
+```bash
+google-chrome dashboards/index.html
+```
+
+A dashboard screenshot is also included:
+
+```text
+screenshots/threat-hunting-dashboard.png
+```
+
+---
+
+# 📄 Automated Reporting
+
+Investigation results are stored as structured JSON data.
+
+Runtime-generated reports are stored in:
+
+```text
+reports/generated/
+```
 
 Current reports include:
 
 ```text
-reports/
+reports/generated/
 ├── hash_analysis_report.json
 ├── ioc_investigation_report.json
 ├── threat_hunting_report.json
 └── timeline_report.json
 ```
 
-Structured reports make investigation results easier to review, archive, process, and integrate into future workflows.
+Example reports are stored separately:
 
-### Security Dashboard
+```text
+reports/examples/
+├── hash_analysis_report.json
+├── ioc_investigation_report.json
+├── threat_hunting_report.json
+└── timeline_report.json
+```
 
-The project includes a dashboard generator and HTML dashboard for presenting investigation results visually.
+Structured JSON reporting makes investigation results easier to:
 
-The dashboard demonstrates how security findings can be transformed from raw analysis data into an analyst-friendly interface.
+* Review
+* Archive
+* Process
+* Automate
+* Integrate into future security workflows
 
 ---
 
-## 📁 Project Structure
+# 🧪 Testing
+
+The project includes an automated test suite using `pytest`.
+
+Run all tests:
+
+```bash
+pytest -v
+```
+
+Current test result:
+
+```text
+20 passed
+```
+
+The tests cover functionality including:
+
+* IOC classification
+* IPv4 validation
+* Domain classification
+* Hash classification
+* Hash calculation
+* Severity assessment
+* Brute-force timeline assessment
+* PowerShell timeline assessment
+* IOC log searching
+* IOC report generation
+* Sigma rule loading
+* Sigma event matching
+* Sigma detection
+* YARA rule compilation
+* YARA sample detection
+* YARA missing-file handling
+
+The project also includes a GitHub Actions workflow:
+
+```text
+.github/workflows/python-tests.yml
+```
+
+This provides automated testing within the development workflow.
+
+---
+
+# 📁 Project Structure
 
 ```text
 cybernova-threat-hunting-toolkit/
+│
+├── .github/
+│   └── workflows/
+│       └── python-tests.yml
 │
 ├── dashboards/
 │   ├── dashboard_generator.py
 │   └── index.html
 │
 ├── hunters/
+│   ├── __init__.py
 │   ├── hash_analyzer.py
 │   ├── ioc_search.py
 │   ├── log_hunter.py
-│   └── timeline_builder.py
+│   ├── sigma_detector.py
+│   ├── timeline_builder.py
+│   └── yara_detector.py
 │
 ├── reports/
 │   ├── examples/
@@ -118,8 +555,19 @@ cybernova-threat-hunting-toolkit/
 │   │   ├── ioc_investigation_report.json
 │   │   ├── threat_hunting_report.json
 │   │   └── timeline_report.json
+│   │
 │   └── generated/
-│       └── runtime analysis reports
+│       ├── hash_analysis_report.json
+│       ├── ioc_investigation_report.json
+│       ├── threat_hunting_report.json
+│       └── timeline_report.json
+│
+├── rules/
+│   ├── sigma/
+│   │   └── failed_login.yml
+│   │
+│   └── yara/
+│       └── suspicious_sample.yar
 │
 ├── samples/
 │   ├── threat_hunting.log
@@ -127,6 +575,10 @@ cybernova-threat-hunting-toolkit/
 │
 ├── screenshots/
 │   └── threat-hunting-dashboard.png
+│
+├── tests/
+│   ├── conftest.py
+│   └── test_toolkit.py
 │
 ├── main.py
 ├── requirements.txt
@@ -139,67 +591,112 @@ cybernova-threat-hunting-toolkit/
 
 ---
 
-## 🔬 Investigation Architecture
+# 🔬 Investigation Workflow
+
+A typical investigation can follow this workflow:
 
 ```text
-                    ┌─────────────────────┐
-                    │   Security Data     │
-                    │    / Sample Logs    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   Threat Hunting    │
-                    │    & Log Analysis    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │   IOC / Hash        │
-                    │   Investigation     │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │      Timeline       │
-                    │   Reconstruction    │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Findings & Evidence │
-                    │     Correlation     │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │ Reports & Dashboard │
-                    └─────────────────────┘
+                    Security Evidence
+                           │
+                           ▼
+                    ┌──────────────┐
+                    │ Log Hunting  │
+                    └──────┬───────┘
+                           │
+                           ▼
+                    Identify IOC
+                           │
+                           ▼
+              ┌─────────────────────────┐
+              │ IOC / Hash Investigation│
+              └────────────┬────────────┘
+                           │
+                           ▼
+                 Apply Detection Rules
+                    ┌──────┴──────┐
+                    ▼             ▼
+                  Sigma         YARA
+                    │             │
+                    └──────┬──────┘
+                           ▼
+                  Correlate Findings
+                           │
+                           ▼
+                  Build Investigation
+                      Timeline
+                           │
+                           ▼
+                  Generate JSON Report
+                           │
+                           ▼
+                  Security Dashboard
 ```
+
+This architecture demonstrates how individual security-analysis components can work together as part of a simplified defensive investigation workflow.
 
 ---
 
-## 💻 Installation
+# 🎯 Blue-Team Use Cases
 
-### 1. Clone the repository
+## Suspicious Authentication
+
+Identify repeated failed logins and determine whether a successful authentication occurred afterward.
+
+## Suspicious PowerShell Activity
+
+Detect PowerShell execution events that may require additional investigation.
+
+## Suspicious DNS Activity
+
+Identify DNS queries involving controlled suspicious-domain indicators.
+
+## Suspicious File Investigation
+
+Calculate file hashes and compare them against controlled threat-intelligence indicators.
+
+## IOC Investigation
+
+Search security logs for a specific IP address, domain, or hash.
+
+## Detection Rule Testing
+
+Apply Sigma and YARA rules against controlled security samples.
+
+## Timeline Analysis
+
+Reconstruct the sequence of events associated with an indicator.
+
+## Security Reporting
+
+Convert investigation findings into structured JSON reports.
+
+## Security Visualization
+
+Present important findings through the HTML dashboard.
+
+---
+
+# 💻 Installation
+
+## 1. Clone the repository
 
 ```bash
-git clone https://github.com/ibrahim-mukhtar-saidu/cybernova-threat-hunting-toolkit.git
+git clone <repository-url>
 ```
 
-### 2. Enter the project directory
+## 2. Enter the project
 
 ```bash
 cd cybernova-threat-hunting-toolkit
 ```
 
-### 3. Create a Python virtual environment
+## 3. Create a virtual environment
 
 ```bash
 python3 -m venv venv
 ```
 
-### 4. Activate the virtual environment
+## 4. Activate the environment
 
 Linux:
 
@@ -213,7 +710,7 @@ Windows:
 venv\Scripts\activate
 ```
 
-### 5. Install dependencies
+## 5. Install dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -221,272 +718,243 @@ pip install -r requirements.txt
 
 ---
 
-## ▶️ Usage
+# ▶️ Quick Start
 
-The project is organized into specialized investigation modules.
+Check the CLI:
 
-### Threat Hunting
-
-```text
-hunters/log_hunter.py
+```bash
+python3 main.py --help
 ```
 
-Used for analyzing security logs and identifying suspicious activity.
+Run IOC investigation:
 
-### IOC Investigation
-
-```text
-hunters/ioc_search.py
+```bash
+python3 main.py ioc 45.33.32.156
 ```
 
-Used for investigating security indicators and producing investigation results.
+Run hash analysis:
 
-### Hash Analysis
-
-```text
-hunters/hash_analyzer.py
+```bash
+python3 main.py hash samples/update.bin
 ```
 
-Used for analyzing file hashes during security investigations.
+Run log hunting:
 
-### Timeline Building
-
-```text
-hunters/timeline_builder.py
+```bash
+python3 main.py log samples/threat_hunting.log
 ```
 
-Used to organize security events into chronological timelines.
+Build an investigation timeline:
 
-### Dashboard Generation
-
-```text
-dashboards/dashboard_generator.py
+```bash
+python3 main.py timeline \
+    samples/threat_hunting.log \
+    45.33.32.156
 ```
 
-Used to generate dashboard data and present security findings visually.
+Run Sigma detection:
 
-> The exact command-line arguments and execution workflow should follow the implementation available in each module.
+```bash
+python3 main.py sigma \
+    samples/threat_hunting.log \
+    rules/sigma/failed_login.yml
+```
+
+Run YARA detection:
+
+```bash
+python3 main.py yara \
+    samples/update.bin \
+    rules/yara/suspicious_sample.yar
+```
+
+Generate the dashboard:
+
+```bash
+python3 dashboards/dashboard_generator.py
+```
+
+Run the test suite:
+
+```bash
+pytest -v
+```
 
 ---
 
-## 🧪 Sample Investigation Data
+# 🧠 Skills Demonstrated
 
-The repository includes controlled sample data for demonstrating the toolkit.
-
-### Sample Log
-
-```text
-samples/threat_hunting.log
-```
-
-### Sample File
-
-```text
-samples/update.bin
-```
-
-The sample files are intended for controlled testing, investigation demonstrations, and portfolio purposes.
-
----
-
-## 📊 Generated Reports
-
-Example investigation results are included in the `reports/examples/` directory. Runtime-generated reports are written to `reports/generated/`.
-
-### Threat Hunting Report
-
-```text
-reports/examples/threat_hunting_report.json
-```
-
-### IOC Investigation Report
-
-```text
-reports/examples/ioc_investigation_report.json
-```
-
-### Hash Analysis Report
-
-```text
-reports/examples/hash_analysis_report.json
-```
-
-### Timeline Report
-
-```text
-reports/examples/timeline_report.json
-```
-
-These reports demonstrate how security investigation results can be converted into structured data for analysis, documentation, and reporting.
-
----
-
-## 🖥️ Security Dashboard
-
-The project includes an HTML-based security dashboard.
-
-Dashboard source:
-
-```text
-dashboards/index.html
-```
-
-Dashboard generator:
-
-```text
-dashboards/dashboard_generator.py
-```
-
-Dashboard screenshot:
-
-```text
-screenshots/threat-hunting-dashboard.png
-```
-
-The dashboard demonstrates basic visualization and presentation of security investigation findings.
-
----
-
-## 🎯 Blue-Team Use Cases
-
-This project demonstrates simplified versions of common security-operations activities.
-
-### 1. Suspicious Log Investigation
-
-An analyst receives security logs and searches for events that may indicate suspicious activity.
-
-### 2. IOC Investigation
-
-An analyst extracts an indicator from a security event and investigates it as part of the wider incident.
-
-### 3. File Investigation
-
-A suspicious file is identified and its hash is analyzed to support investigation and correlation.
-
-### 4. Timeline Reconstruction
-
-Security events are organized chronologically to understand the sequence of activity.
-
-### 5. Investigation Reporting
-
-Investigation findings are transformed into structured reports that can be reviewed or archived.
-
-### 6. Security Visualization
-
-Important investigation findings are presented through the project dashboard.
-
----
-
-## 🧠 Skills Demonstrated
-
-### Cybersecurity
+## Cybersecurity
 
 * Threat hunting
-* SOC analyst workflows
+* SOC workflows
 * IOC investigation
 * Security log analysis
+* Detection engineering
+* Sigma rule detection
+* YARA rule scanning
 * Hash analysis
-* Incident investigation
 * Timeline reconstruction
+* Incident investigation
 * Security reporting
 * Blue-team operations
-* Defensive security
 
-### Python
+## Python
 
-* Python scripting
-* Modular application development
+* Python 3
+* Modular application design
+* CLI development
 * File processing
+* Regular expressions
 * JSON processing
-* Log analysis
+* Exception handling
 * Automation
 * Report generation
+* Unit and integration testing
 
-### Security Operations
+## Security Engineering
 
-* Evidence analysis
-* Investigation methodology
-* Detection-oriented thinking
-* Security documentation
-* Analyst reporting
-* Structured investigation output
+* Detection logic
+* Rule-based detection
+* Evidence processing
+* Event correlation
+* Severity classification
+* Investigation workflows
+* Structured security output
 
-### Linux & Development
+## Linux & Development
 
 * Linux command line
 * Python virtual environments
 * Git
 * GitHub
+* Git branching and commits
+* Automated testing
 * Project organization
-* Security tooling development
+* Security-tool development
 
 ---
 
-## 🛡️ Security Philosophy
+# 🔐 Defensive Security Philosophy
 
-The toolkit follows a defensive-security approach:
+The toolkit follows a simplified defensive security lifecycle:
 
 ```text
-Detect
-  ↓
-Investigate
-  ↓
-Understand
-  ↓
-Document
-  ↓
-Respond
-  ↓
-Improve
+        DETECT
+           │
+           ▼
+      INVESTIGATE
+           │
+           ▼
+       CORRELATE
+           │
+           ▼
+       UNDERSTAND
+           │
+           ▼
+       DOCUMENT
+           │
+           ▼
+        IMPROVE
 ```
 
-The goal is not simply to detect suspicious activity, but to help an analyst understand the evidence and communicate investigation findings clearly.
+The objective is not simply to identify suspicious activity.
+
+A useful security investigation should help an analyst understand:
+
+* What happened?
+* When did it happen?
+* What indicator is involved?
+* Which events are related?
+* How severe is the activity?
+* What evidence supports the finding?
+* What should be investigated next?
 
 ---
 
-## 🚧 Project Status
+# 🧰 Development Practices
+
+The project uses several practices intended to reflect real-world software and security engineering:
+
+* Modular Python components
+* Reusable detection functions
+* Command-line integration
+* Controlled sample data
+* Automated testing
+* Git version control
+* Structured JSON output
+* Detection-rule organization
+* Dashboard generation
+* Continuous testing through GitHub Actions
+* Clear project documentation
+
+---
+
+# 🚧 Project Status
 
 **Status: Active Development**
 
-The current version demonstrates the core architecture and investigation workflow.
+The core investigation architecture is currently implemented.
 
-Planned improvements include:
+### Implemented
 
-* Additional detection rules
-* Expanded IOC support
-* More log formats
-* Threat-intelligence integrations
-* Improved dashboard visualizations
-* Automated event correlation
-* SIEM integration
-* Alert prioritization
-* Additional test coverage
-* Improved command-line interface
-* Expanded documentation
+* [x] IOC classification
+* [x] IOC investigation
+* [x] Hash analysis
+* [x] Threat-intelligence lookup
+* [x] Security log hunting
+* [x] Timeline reconstruction
+* [x] Sigma detection
+* [x] YARA detection
+* [x] Unified CLI
+* [x] JSON investigation reports
+* [x] HTML security dashboard
+* [x] Automated tests
+* [x] GitHub Actions workflow
+* [x] Controlled sample data
+
+### Planned Improvements
+
+* [ ] Expanded IOC types
+* [ ] Additional Sigma rules
+* [ ] Additional YARA rules
+* [ ] More log formats
+* [ ] Advanced event correlation
+* [ ] External threat-intelligence integrations
+* [ ] SIEM integration
+* [ ] Improved alert prioritization
+* [ ] Expanded dashboard analytics
+* [ ] Additional test coverage
+* [ ] Enhanced CLI options
+* [ ] Detection-rule management
+* [ ] Additional investigation reports
 
 ---
 
-## 📚 Learning Objectives
+# 📚 Learning Objectives
 
 This project was developed to strengthen practical skills in:
 
 * Security Operations Center workflows
 * Threat hunting
+* Detection engineering
 * Incident investigation
 * Python security automation
-* Log analysis
+* Security log analysis
 * IOC analysis
+* Sigma detection
+* YARA detection
+* Timeline analysis
 * Security reporting
-* Blue-team operations
 * Defensive security engineering
 
-The objective is to demonstrate the ability to **analyze security evidence, investigate suspicious activity, automate repetitive tasks, and communicate findings clearly**.
+The broader objective is to demonstrate the ability to **analyze security evidence, develop detection logic, automate investigation tasks, correlate findings, and communicate security results clearly.**
 
 ---
 
-## 👨‍💻 Author
+# 👨‍💻 Author
 
-**Ibrahim Mukhtar Saidu**
+## Ibrahim Mukhtar Saidu
 
 Cybersecurity learner and security project developer focused on:
 
@@ -494,6 +962,7 @@ Cybersecurity learner and security project developer focused on:
 * Threat Hunting
 * Defensive Security
 * Python Security Automation
+* Detection Engineering
 * Cybersecurity Research
 
 ### CYBERNOVA AI
@@ -502,7 +971,7 @@ This project is part of the **CYBERNOVA AI cybersecurity portfolio**.
 
 ---
 
-## ⚠️ Disclaimer
+# ⚠️ Security Disclaimer
 
 This project is intended for:
 
@@ -510,31 +979,66 @@ This project is intended for:
 * Defensive security research
 * Authorized security testing
 * Cybersecurity laboratory environments
+* Controlled security-analysis demonstrations
 
-Do not use this toolkit to monitor, investigate, or analyze systems or data without appropriate authorization.
+Only analyze systems, files, logs, or data for which you have appropriate authorization.
+
+The project should not be used to conduct unauthorized monitoring, intrusion, or malicious activity.
 
 The author is not responsible for misuse of this project.
 
 ---
 
-## 📄 License
+# 🤝 Contributing
 
-See the `LICENSE` file for licensing information.
+Contributions, suggestions, improvements, detection rules, documentation improvements, and security-focused ideas are welcome.
+
+Please review:
+
+```text
+CONTRIBUTING.md
+```
+
+before submitting changes.
 
 ---
 
-## 🤝 Contributing
+# 📄 License
 
-Contributions, suggestions, improvements, and security-focused ideas are welcome.
+See:
 
-Please review `CONTRIBUTING.md` before submitting changes.
+```text
+LICENSE
+```
+
+for licensing information.
 
 ---
 
-## 🔗 Repository
+# ⭐ Project Summary
 
-**GitHub:**
-https://github.com/ibrahim-mukhtar-saidu/cybernova-threat-hunting-toolkit
+**CYBERNOVA AI Threat Hunting Toolkit** demonstrates a practical defensive-security workflow that combines:
 
+```text
+IOC Investigation
+        +
+Hash Analysis
+        +
+Log Hunting
+        +
+Timeline Reconstruction
+        +
+Sigma Detection
+        +
+YARA Detection
+        +
+Automated Testing
+        +
+JSON Reporting
+        +
+Security Dashboard
+        =
+Integrated Threat Hunting Toolkit
 ```
-```
+
+The project is designed to demonstrate practical cybersecurity engineering skills through a modular, testable, and extensible Python implementation.
