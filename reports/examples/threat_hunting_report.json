@@ -1,0 +1,48 @@
+{
+    "generated_at": "2026-08-09T16:20:12.543376+00:00",
+    "findings": [
+        {
+            "severity": "CRITICAL",
+            "type": "Authentication Anomaly",
+            "timestamp": "MULTIPLE_EVENTS",
+            "user": "admin",
+            "destination": "45.33.32.156",
+            "file": "ssh.log",
+            "description": "Successful login after multiple failed login attempts."
+        },
+        {
+            "severity": "HIGH",
+            "type": "PowerShell Execution",
+            "timestamp": "2026-08-07 10:08:11",
+            "user": "root",
+            "destination": "203.0.113.50",
+            "file": "script.ps1",
+            "description": "Suspicious PowerShell execution detected."
+        },
+        {
+            "severity": "MEDIUM",
+            "type": "Suspicious DNS Query",
+            "timestamp": "2026-08-07 10:06:20",
+            "user": "admin",
+            "destination": "malicious-domain.com",
+            "file": "dns.log",
+            "description": "DNS query to a suspicious domain detected."
+        },
+        {
+            "severity": "LOW",
+            "type": "File Download",
+            "timestamp": "2026-08-07 10:07:44",
+            "user": "system",
+            "destination": "198.51.100.23",
+            "file": "update.bin",
+            "description": "File download activity observed."
+        }
+    ],
+    "summary": {
+        "total_findings": 4,
+        "critical": 1,
+        "high": 1,
+        "medium": 1,
+        "low": 1
+    }
+}

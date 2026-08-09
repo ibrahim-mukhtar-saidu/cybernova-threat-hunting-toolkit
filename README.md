@@ -113,10 +113,13 @@ cybernova-threat-hunting-toolkit/
 │   └── timeline_builder.py
 │
 ├── reports/
-│   ├── hash_analysis_report.json
-│   ├── ioc_investigation_report.json
-│   ├── threat_hunting_report.json
-│   └── timeline_report.json
+│   ├── examples/
+│   │   ├── hash_analysis_report.json
+│   │   ├── ioc_investigation_report.json
+│   │   ├── threat_hunting_report.json
+│   │   └── timeline_report.json
+│   └── generated/
+│       └── runtime analysis reports
 │
 ├── samples/
 │   ├── threat_hunting.log
@@ -288,30 +291,30 @@ The sample files are intended for controlled testing, investigation demonstratio
 
 ## 📊 Generated Reports
 
-Example investigation results are included in the `reports/` directory.
+Example investigation results are included in the `reports/examples/` directory. Runtime-generated reports are written to `reports/generated/`.
 
 ### Threat Hunting Report
 
 ```text
-reports/threat_hunting_report.json
+reports/examples/threat_hunting_report.json
 ```
 
 ### IOC Investigation Report
 
 ```text
-reports/ioc_investigation_report.json
+reports/examples/ioc_investigation_report.json
 ```
 
 ### Hash Analysis Report
 
 ```text
-reports/hash_analysis_report.json
+reports/examples/hash_analysis_report.json
 ```
 
 ### Timeline Report
 
 ```text
-reports/timeline_report.json
+reports/examples/timeline_report.json
 ```
 
 These reports demonstrate how security investigation results can be converted into structured data for analysis, documentation, and reporting.

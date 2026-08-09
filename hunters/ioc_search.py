@@ -4,7 +4,7 @@ import re
 from datetime import datetime, UTC
 
 
-REPORT_DIR = "reports"
+REPORT_DIR = "reports/generated"
 LOG_FILE = "samples/threat_hunting.log"
 
 

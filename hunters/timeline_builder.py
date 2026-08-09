@@ -4,7 +4,7 @@ import json
 import re
 
 LOG_FILE = "samples/threat_hunting.log"
-REPORT_DIR = "reports"
+REPORT_DIR = "reports/generated"
 
 TIMESTAMP_PATTERN = re.compile(r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})")
 ACTION_PATTERN = re.compile(r"ACTION=([A-Z_]+)")

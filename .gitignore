@@ -4,3 +4,6 @@ env/
 __pycache__/
 .env
 .env.*
+
+# Generated analysis reports
+reports/generated/

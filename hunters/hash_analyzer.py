@@ -3,7 +3,7 @@ from datetime import datetime, UTC
 import hashlib
 import json
 
-REPORT_DIR = "reports"
+REPORT_DIR = "reports/generated"
 
 KNOWN_MALICIOUS_HASHES = {
     "44b2ecb6fbd58d953e6f0b6d4d1d5d24d6e8f93a6bfbf7f0b0c2d77c4b8b8d61": "Simulated Malware Sample A",

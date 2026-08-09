@@ -10,7 +10,7 @@ from hunters.hash_analyzer import (
     generate_report as generate_hash_report,
 )
 from hunters.log_hunter import hunt_logs, generate_report as generate_log_report
-from hunters.timeline_builder import build_timeline, assess_timeline
+from hunters.timeline_builder import build_timeline, assess_timeline, generate_timeline_report
 
 
 def cmd_ioc(value):
@@ -88,6 +88,8 @@ def cmd_timeline(filepath, ioc):
 
     print("\nAssessment:")
     print(assessment)
+    report_path = generate_timeline_report(ioc, timeline)
+    print(f"Report saved: {report_path}")
 
 
 def main():
