@@ -1,6 +1,5 @@
 from pathlib import Path
 import json
-import re
 from datetime import datetime, UTC
 
 
@@ -18,7 +17,14 @@ def classify_ioc(ioc: str) -> str:
         return "IP Address"
 
     if "." in ioc and not ioc.endswith(".log") and not ioc.endswith(".ps1"):
-        return "Domain"
+        domain_parts = ioc.split(".")
+
+        if (
+            len(domain_parts) >= 2
+            and all(part and all(c.isalnum() or c == "-" for c in part) for part in domain_parts)
+            and not all(part.isdigit() for part in domain_parts)
+        ):
+            return "Domain"
 
     if len(ioc) in (32, 40, 64) and all(
         c in "0123456789abcdefABCDEF" for c in ioc

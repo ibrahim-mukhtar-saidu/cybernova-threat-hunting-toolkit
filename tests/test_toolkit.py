@@ -134,5 +134,5 @@ def test_classify_valid_ipv4_addresses():
 
 
 def test_classify_invalid_ipv4_addresses():
-    assert classify_ioc("999.999.999.999") == "Domain"
+    assert classify_ioc("999.999.999.999") == "File / Indicator"
     assert classify_ioc("45x33x32x156") == "File / Indicator"
