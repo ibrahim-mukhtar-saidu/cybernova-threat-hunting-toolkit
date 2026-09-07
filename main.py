@@ -1,35 +1,51 @@
 #!/usr/bin/env python3
+# FILE: main.py
 
 import argparse
+import re
 import sys
 
-from hunters.ioc_search import (
-    classify_ioc,
-    determine_severity,
-    search_ioc,
-    generate_report,
-)
 from hunters.hash_analyzer import (
     calculate_hashes,
     threat_intelligence_lookup,
+)
+from hunters.hash_analyzer import (
     generate_report as generate_hash_report,
+)
+from hunters.ioc_search import (
+    classify_ioc,
+    determine_severity,
+    generate_report,
+    search_ioc,
+)
+from hunters.log_hunter import (
+    generate_report as generate_log_report,
 )
 from hunters.log_hunter import (
     hunt_logs,
-    generate_report as generate_log_report,
-)
-from hunters.timeline_builder import (
-    build_timeline,
-    assess_timeline,
-    generate_timeline_report,
 )
 from hunters.sigma_detector import detect_with_sigma
+from hunters.timeline_builder import (
+    assess_timeline,
+    build_timeline,
+    generate_timeline_report,
+)
 from hunters.yara_detector import scan_file
 
+DEFAULT_LOG_FILE = "samples/threat_hunting.log"
 
-def cmd_ioc(value):
+# Raw log lines are attacker-influenced data. Strip terminal control
+# characters before printing them so a crafted log entry cannot manipulate
+# the analyst's terminal (cursor movement, screen clearing, etc.).
+_CONTROL_CHARS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+
+
+def sanitize_for_display(text: str) -> str:
+    return _CONTROL_CHARS.sub("", text)
+
+
+def cmd_ioc(value: str, log_file: str) -> None:
     ioc_type = classify_ioc(value)
-    log_file = "samples/threat_hunting.log"
 
     results = search_ioc(log_file, value)
     severity = determine_severity(len(results))
@@ -50,13 +66,13 @@ def cmd_ioc(value):
     print("\nMatching Events:")
 
     for result in results:
-        print(f"Line {result['line']}: {result['content']}")
+        print(f"Line {result['line']}: {sanitize_for_display(result['content'])}")
 
     report_path = generate_report(value, results)
     print(f"\nReport saved: {report_path}")
 
 
-def cmd_hash(filepath):
+def cmd_hash(filepath: str) -> None:
     hashes = calculate_hashes(filepath)
     intel = threat_intelligence_lookup(hashes["sha256"])
 
@@ -79,7 +95,7 @@ def cmd_hash(filepath):
     print(f"\nReport saved: {report_path}")
 
 
-def cmd_log(filepath):
+def cmd_log(filepath: str) -> None:
     findings = hunt_logs(filepath)
 
     print("\n=== CYBERNOVA LOG HUNTING ===")
@@ -105,7 +121,7 @@ def cmd_log(filepath):
     print(f"Report saved: {report_path}")
 
 
-def cmd_timeline(filepath, ioc):
+def cmd_timeline(filepath: str, ioc: str) -> None:
     timeline = build_timeline(filepath, ioc)
     assessment = assess_timeline(timeline)
 
@@ -119,7 +135,15 @@ def cmd_timeline(filepath, ioc):
         print("No timeline events found.")
     else:
         for event in timeline:
-            print(event)
+            print(
+                "  "
+                f"Timestamp: {sanitize_for_display(event["timestamp"])} | "
+                f"Action: {sanitize_for_display(event["action"])} | "
+                f"User: {sanitize_for_display(event["user"])} | "
+                f"Source: {sanitize_for_display(event["source_ip"])} | "
+                f"Destination: {sanitize_for_display(event["destination"])} | "
+                f"File: {sanitize_for_display(event["file"])}"
+            )
 
     print("\nAssessment:")
     print(assessment)
@@ -128,7 +152,7 @@ def cmd_timeline(filepath, ioc):
     print(f"Report saved: {report_path}")
 
 
-def cmd_sigma(logfile, rule):
+def cmd_sigma(logfile: str, rule: str) -> None:
     matches = detect_with_sigma(logfile, rule)
 
     print("\n=== CYBERNOVA SIGMA DETECTION ===")
@@ -148,10 +172,10 @@ def cmd_sigma(logfile, rule):
             f"{match['rule']} | "
             f"Line {match['line']}"
         )
-        print(f"  {match['content']}")
+        print(f"  {sanitize_for_display(match['content'])}")
 
 
-def cmd_yara(sample, rule):
+def cmd_yara(sample: str, rule: str) -> None:
     matches = scan_file(sample, rule)
 
     print("\n=== CYBERNOVA YARA ANALYSIS ===")
@@ -174,7 +198,7 @@ def cmd_yara(sample, rule):
         print(f"Description: {meta.get('description', 'N/A')}")
 
 
-def main():
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="cybernova",
         description="CYBERNOVA AI Threat Hunting Toolkit",
@@ -192,6 +216,12 @@ def main():
     ioc_parser.add_argument(
         "value",
         help="IP address, domain, or file hash",
+    )
+    ioc_parser.add_argument(
+        "--log",
+        dest="log_file",
+        default=DEFAULT_LOG_FILE,
+        help=f"Log file to search (default: {DEFAULT_LOG_FILE})",
     )
 
     hash_parser = subparsers.add_parser(
@@ -251,11 +281,16 @@ def main():
         help="Path to the YARA rule",
     )
 
+    return parser
+
+
+def main() -> None:
+    parser = build_parser()
     args = parser.parse_args()
 
     try:
         if args.command == "ioc":
-            cmd_ioc(args.value)
+            cmd_ioc(args.value, args.log_file)
 
         elif args.command == "hash":
             cmd_hash(args.file)
@@ -276,8 +311,16 @@ def main():
         print(f"Error: file not found: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    except Exception as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+    except ValueError as exc:
+        print(f"Error: invalid input: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    except PermissionError as exc:
+        print(f"Error: permission denied: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    except RuntimeError as exc:
+        print(f"Error: unexpected failure: {exc}", file=sys.stderr)
         sys.exit(1)
 
 

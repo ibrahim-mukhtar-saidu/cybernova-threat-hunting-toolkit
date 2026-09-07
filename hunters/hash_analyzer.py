@@ -1,7 +1,9 @@
-from pathlib import Path
-from datetime import datetime, UTC
+# FILE: hunters/hash_analyzer.py
+
 import hashlib
 import json
+from datetime import UTC, datetime
+from pathlib import Path
 
 REPORT_DIR = "reports/generated"
 
@@ -10,14 +12,18 @@ KNOWN_MALICIOUS_HASHES = {
     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": "Test Malware Hash",
 }
 
-def calculate_hashes(file_path: str):
+
+def calculate_hashes(file_path: str) -> dict[str, str]:
     path = Path(file_path)
 
     if not path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
 
-    md5 = hashlib.md5()
-    sha1 = hashlib.sha1()
+    if not path.is_file():
+        raise ValueError(f"Path is not a file: {file_path}")
+
+    md5 = hashlib.md5(usedforsecurity=False)
+    sha1 = hashlib.sha1(usedforsecurity=False)
     sha256 = hashlib.sha256()
 
     with path.open("rb") as f:
@@ -32,7 +38,8 @@ def calculate_hashes(file_path: str):
         "sha256": sha256.hexdigest(),
     }
 
-def threat_intelligence_lookup(sha256_hash: str):
+
+def threat_intelligence_lookup(sha256_hash: str) -> dict:
     if sha256_hash in KNOWN_MALICIOUS_HASHES:
         return {
             "matched": True,
@@ -46,8 +53,9 @@ def threat_intelligence_lookup(sha256_hash: str):
         "risk": "LOW",
     }
 
-def generate_report(file_path: str, hashes, intel):
-    Path(REPORT_DIR).mkdir(exist_ok=True)
+
+def generate_report(file_path: str, hashes: dict, intel: dict) -> Path:
+    Path(REPORT_DIR).mkdir(parents=True, exist_ok=True)
 
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
@@ -62,28 +70,3 @@ def generate_report(file_path: str, hashes, intel):
         json.dump(report, f, indent=4)
 
     return output
-
-if __name__ == "__main__":
-    target_file = input("Enter file path: ").strip()
-
-    hashes = calculate_hashes(target_file)
-    intel = threat_intelligence_lookup(hashes["sha256"])
-
-    print("\n=== Hash Analysis ===")
-    print(f"File: {target_file}")
-    print(f"MD5: {hashes['md5']}")
-    print(f"SHA1: {hashes['sha1']}")
-    print(f"SHA256: {hashes['sha256']}")
-
-    print("\nThreat Intelligence:")
-    if intel["matched"]:
-        print(f"Known malicious sample: {intel['threat_name']}")
-    else:
-        print("No known malicious hash match found.")
-
-    print(f"Risk Level: {intel['risk']}")
-
-    report_path = generate_report(target_file, hashes, intel)
-
-    print("\nHash analysis report saved:")
-    print(report_path)

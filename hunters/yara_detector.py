@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-import yara
+import yara  # type: ignore[import-not-found]
 
 
 def compile_yara_rule(rule_path: str) -> yara.Rules:
@@ -13,6 +13,9 @@ def compile_yara_rule(rule_path: str) -> yara.Rules:
 
     if not path.is_file():
         raise ValueError(f"YARA rule path is not a file: {rule_path}")
+
+    if path.stat().st_size == 0:
+        raise yara.Error("YARA rule file is empty")
 
     return yara.compile(filepath=str(path))
 

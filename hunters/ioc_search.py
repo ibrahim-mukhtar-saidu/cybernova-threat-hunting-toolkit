@@ -1,61 +1,101 @@
-from pathlib import Path
-import json
-from datetime import datetime, UTC
+# FILE: hunters/ioc_search.py
 
+import ipaddress
+import json
+from datetime import UTC, datetime
+from pathlib import Path
+
+from hunters.matching import ioc_appears_in_line, validate_ioc
 
 REPORT_DIR = "reports/generated"
 LOG_FILE = "samples/threat_hunting.log"
 
+# Extensions that indicate the value is almost certainly a filename rather
+# than a domain, even though it structurally looks like "label.label".
+COMMON_FILE_EXTENSIONS = {
+    "bin", "exe", "dll", "log", "ps1", "txt", "bat", "sh", "zip", "rar",
+    "doc", "docx", "pdf", "jpg", "jpeg", "png", "gif", "csv", "json",
+    "yml", "yaml", "py", "js", "dat", "tmp", "ini", "cfg", "conf", "sys",
+}
+
 
 def classify_ioc(ioc: str) -> str:
-    parts = ioc.split(".")
+    value = ioc.strip()
 
-    if len(parts) == 4 and all(
-        part.isdigit() and 0 <= int(part) <= 255
-        for part in parts
-    ):
+    try:
+        ipaddress.ip_address(value)
         return "IP Address"
+    except ValueError:
+        pass
 
-    if "." in ioc and not ioc.endswith(".log") and not ioc.endswith(".ps1"):
-        domain_parts = ioc.split(".")
-
-        if (
-            len(domain_parts) >= 2
-            and all(part and all(c.isalnum() or c == "-" for c in part) for part in domain_parts)
-            and not all(part.isdigit() for part in domain_parts)
-        ):
-            return "Domain"
-
-    if len(ioc) in (32, 40, 64) and all(
-        c in "0123456789abcdefABCDEF" for c in ioc
+    if len(value) in (32, 40, 64) and all(
+        c in "0123456789abcdefABCDEF" for c in value
     ):
         return "Hash"
 
+    if _looks_like_domain(value):
+        return "Domain"
+
     return "File / Indicator"
+
+
+def _looks_like_domain(value: str) -> bool:
+    labels = value.split(".")
+
+    if len(labels) < 2 or not all(labels):
+        return False
+
+    if all(label.isdigit() for label in labels):
+        return False
+
+    tld = labels[-1]
+
+    if not tld.isalpha() or not (2 <= len(tld) <= 24):
+        return False
+
+    if tld.lower() in COMMON_FILE_EXTENSIONS:
+        return False
+
+    valid_chars = set(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
+    )
+
+    for label in labels:
+        if not set(label) <= valid_chars:
+            return False
+        if label.startswith("-") or label.endswith("-"):
+            return False
+
+    return True
+
 
 def determine_severity(matches: int) -> str:
     if matches >= 4:
         return "CRITICAL"
-    elif matches == 3:
+    if matches == 3:
         return "HIGH"
-    elif matches == 2:
+    if matches == 2:
         return "MEDIUM"
-    elif matches == 1:
+    if matches == 1:
         return "LOW"
     return "INFO"
 
 
-def search_ioc(log_file: str, ioc: str):
+def search_ioc(log_file: str, ioc: str) -> list[dict]:
+    indicator = validate_ioc(ioc)
     path = Path(log_file)
 
     if not path.exists():
-        return []
+        raise FileNotFoundError(f"Log file not found: {log_file}")
+
+    if not path.is_file():
+        raise ValueError(f"Log path is not a file: {log_file}")
 
     matches = []
 
-    with path.open("r", encoding="utf-8") as f:
+    with path.open("r", encoding="utf-8", errors="replace") as f:
         for line_number, line in enumerate(f, start=1):
-            if ioc.lower() in line.lower():
+            if ioc_appears_in_line(indicator, line):
                 matches.append(
                     {
                         "line": line_number,
@@ -66,8 +106,8 @@ def search_ioc(log_file: str, ioc: str):
     return matches
 
 
-def generate_report(ioc: str, results):
-    Path(REPORT_DIR).mkdir(exist_ok=True)
+def generate_report(ioc: str, results: list[dict]) -> Path:
+    Path(REPORT_DIR).mkdir(parents=True, exist_ok=True)
 
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
@@ -84,29 +124,3 @@ def generate_report(ioc: str, results):
         json.dump(report, f, indent=4)
 
     return output
-
-
-if __name__ == "__main__":
-    indicator = input("Enter IOC: ").strip()
-
-    results = search_ioc(LOG_FILE, indicator)
-
-    print("\n=== IOC Search Results ===")
-
-    if not results:
-        print("No matches found.")
-    else:
-        severity = determine_severity(len(results))
-
-        print(f"IOC: {indicator}")
-        print(f"Type: {classify_ioc(indicator)}")
-        print(f"Matches: {len(results)}")
-        print(f"Severity: {severity}\n")
-
-        for result in results:
-            print(f"Line {result['line']}: {result['content']}")
-
-        report_path = generate_report(indicator, results)
-
-        print(f"\nInvestigation report saved:")
-        print(report_path)
