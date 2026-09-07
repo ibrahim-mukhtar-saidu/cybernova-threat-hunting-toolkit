@@ -1,40 +1,48 @@
+# FILE: dashboards/dashboard_generator.py
+
 import html
 import json
 from pathlib import Path
-
+from typing import Any
 
 REPORT_FILE = Path("reports/generated/threat_hunting_report.json")
 OUTPUT_FILE = Path("dashboards/index.html")
 
 
-def generate_dashboard():
-    if not REPORT_FILE.exists():
-        raise FileNotFoundError(
-            f"Threat hunting report not found: {REPORT_FILE}"
-        )
+def load_report(report_file: Path) -> dict[str, Any]:
+    if not report_file.exists():
+        raise FileNotFoundError(f"Threat hunting report not found: {report_file}")
 
-    with REPORT_FILE.open("r", encoding="utf-8") as file:
+    with report_file.open("r", encoding="utf-8") as file:
         report = json.load(file)
+
+    if not isinstance(report, dict):
+        raise TypeError("Threat hunting report must contain a JSON object.")
 
     findings = report.get("findings", [])
     summary = report.get("summary", {})
 
-    finding_rows = ""
+    if not isinstance(findings, list):
+        raise TypeError("Report 'findings' field must be a list.")
 
-    for finding in findings:
-        severity = html.escape(str(finding.get("severity", "UNKNOWN")))
-        finding_type = html.escape(str(finding.get("type", "UNKNOWN")))
-        timestamp = html.escape(str(finding.get("timestamp", "UNKNOWN")))
-        user = html.escape(str(finding.get("user", "UNKNOWN")))
-        destination = html.escape(
-            str(finding.get("destination", "UNKNOWN"))
-        )
-        file_name = html.escape(str(finding.get("file", "UNKNOWN")))
-        description = html.escape(
-            str(finding.get("description", "No description available."))
-        )
+    if not isinstance(summary, dict):
+        raise TypeError("Report 'summary' field must be an object.")
 
-        finding_rows += f"""
+    return report
+
+
+def render_finding_row(finding: dict[str, Any]) -> str:
+    severity = html.escape(str(finding.get("severity", "UNKNOWN")))
+    finding_type = html.escape(str(finding.get("type", "UNKNOWN")))
+    timestamp = html.escape(str(finding.get("timestamp", "UNKNOWN")))
+    user = html.escape(str(finding.get("user", "UNKNOWN")))
+    destination = html.escape(str(finding.get("destination", "UNKNOWN")))
+    file_name = html.escape(str(finding.get("file", "UNKNOWN")))
+    description = html.escape(
+        str(finding.get("description", "No description available."))
+    )
+
+    return f"""
         <tr>
             <td>
                 <span class="severity {severity.lower()}">
@@ -49,6 +57,17 @@ def generate_dashboard():
             <td>{description}</td>
         </tr>
         """
+
+
+def generate_dashboard() -> Path:
+    report = load_report(REPORT_FILE)
+
+    findings = report.get("findings", [])
+    summary = report.get("summary", {})
+
+    finding_rows = "".join(
+        render_finding_row(finding) for finding in findings if isinstance(finding, dict)
+    )
 
     if not finding_rows:
         finding_rows = """
@@ -65,7 +84,7 @@ def generate_dashboard():
     medium = summary.get("medium", 0)
     low = summary.get("low", 0)
 
-    generated_at = "CYBERNOVA AI Demo Dataset"
+    generated_at = html.escape(str(report.get("generated_at", "Unknown")))
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -334,9 +353,10 @@ def generate_dashboard():
     with OUTPUT_FILE.open("w", encoding="utf-8") as file:
         file.write(html_content)
 
-    print("Dashboard created:")
-    print(OUTPUT_FILE)
+    return OUTPUT_FILE
 
 
 if __name__ == "__main__":
-    generate_dashboard()
+    output_path = generate_dashboard()
+    print("Dashboard created:")
+    print(output_path)

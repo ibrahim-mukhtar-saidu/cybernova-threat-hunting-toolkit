@@ -1,7 +1,11 @@
-from pathlib import Path
-from datetime import datetime, UTC
+# FILE: hunters/timeline_builder.py
+
 import json
 import re
+from datetime import UTC, datetime
+from pathlib import Path
+
+from hunters.matching import ioc_appears_in_line, validate_ioc
 
 LOG_FILE = "samples/threat_hunting.log"
 REPORT_DIR = "reports/generated"
@@ -13,17 +17,22 @@ SRC_PATTERN = re.compile(r"SRC=([0-9.]+)")
 DST_PATTERN = re.compile(r"DST=([A-Za-z0-9._-]+)")
 FILE_PATTERN = re.compile(r"FILE=([A-Za-z0-9._-]+)")
 
-def build_timeline(log_file: str, ioc: str):
+
+def build_timeline(log_file: str, ioc: str) -> list[dict[str, str]]:
+    indicator = validate_ioc(ioc)
     path = Path(log_file)
 
     if not path.exists():
-        return []
+        raise FileNotFoundError(f"Log file not found: {log_file}")
+
+    if not path.is_file():
+        raise ValueError(f"Log path is not a file: {log_file}")
 
     timeline = []
 
-    with path.open("r", encoding="utf-8") as f:
+    with path.open("r", encoding="utf-8", errors="replace") as f:
         for line in f:
-            if ioc.lower() not in line.lower():
+            if not ioc_appears_in_line(indicator, line):
                 continue
 
             timestamp_match = TIMESTAMP_PATTERN.search(line)
@@ -44,26 +53,38 @@ def build_timeline(log_file: str, ioc: str):
                 }
             )
 
-    timeline.sort(key=lambda x: x["timestamp"])
+    timeline.sort(key=lambda entry: entry["timestamp"])
 
     return timeline
 
-def assess_timeline(timeline):
-    actions = [entry["action"] for entry in timeline]
 
-    if actions.count("FAILED_LOGIN") >= 3 and "SUCCESSFUL_LOGIN" in actions:
-        return "Brute-force attack followed by successful authentication"
+def assess_timeline(timeline: list[dict[str, str]]) -> str:
+    """Assess a timeline, honoring event order rather than just event counts.
 
-    if actions.count("FAILED_LOGIN") >= 3:
+    A successful login only counts as "following" a brute-force attempt if
+    it appears in the timeline after at least three prior failures.
+    """
+    failed_login_count = 0
+
+    for entry in timeline:
+        action = entry.get("action")
+
+        if action == "FAILED_LOGIN":
+            failed_login_count += 1
+        elif action == "SUCCESSFUL_LOGIN" and failed_login_count >= 3:
+            return "Brute-force attack followed by successful authentication"
+
+    if failed_login_count >= 3:
         return "Repeated authentication failures observed"
 
-    if "POWERSHELL_EXECUTION" in actions:
+    if any(entry.get("action") == "POWERSHELL_EXECUTION" for entry in timeline):
         return "Suspicious PowerShell activity observed"
 
     return "General IOC activity observed"
 
-def generate_timeline_report(ioc: str, timeline):
-    Path(REPORT_DIR).mkdir(exist_ok=True)
+
+def generate_timeline_report(ioc: str, timeline: list[dict[str, str]]) -> Path:
+    Path(REPORT_DIR).mkdir(parents=True, exist_ok=True)
 
     report = {
         "generated_at": datetime.now(UTC).isoformat(),
@@ -79,28 +100,3 @@ def generate_timeline_report(ioc: str, timeline):
         json.dump(report, f, indent=4)
 
     return output
-
-if __name__ == "__main__":
-    indicator = input("Enter IOC for timeline analysis: ").strip()
-
-    timeline = build_timeline(LOG_FILE, indicator)
-
-    print("\n=== Investigation Timeline ===")
-
-    if not timeline:
-        print("No timeline events found.")
-    else:
-        for entry in timeline:
-            print(
-                f"{entry['timestamp']} | {entry['action']} | USER={entry['user']} | DST={entry['destination']}"
-            )
-
-        assessment = assess_timeline(timeline)
-
-        print("\nAssessment:")
-        print(assessment)
-
-        report_path = generate_timeline_report(indicator, timeline)
-
-        print("\nTimeline report saved:")
-        print(report_path)
