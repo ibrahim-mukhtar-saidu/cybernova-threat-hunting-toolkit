@@ -765,21 +765,27 @@ Static analysis was completed and identified findings were remediated.
 
 ### Bandit
 
-Final security scan:
+Final security scan of application/source code:
+
+```bash
+bandit -q -r main.py hunters dashboards scripts
+```
+
+Result:
 
 ```text
 HIGH:   0
 MEDIUM: 0
 ```
 
-The remaining low-severity results were expected test assertions rather than unresolved production security vulnerabilities.
+The repository's pytest suite uses standard Python `assert` statements, which produce low-severity `B101` findings when Bandit is run recursively across the test suite. These findings are confined to `tests/test_toolkit.py` and are expected test assertions, not production security vulnerabilities. Tests are therefore validated separately with Pytest rather than suppressing `B101` globally.
 
 ### MyPy
 
 Final result:
 
 ```text
-Success: no issues found in 13 source files
+Success: no issues found in 11 source files
 ```
 
 ### pip-audit
